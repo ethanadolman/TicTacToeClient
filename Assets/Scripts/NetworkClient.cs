@@ -3,6 +3,8 @@ using UnityEngine.Assertions;
 using Unity.Collections;
 using Unity.Networking.Transport;
 using System.Text;
+using System.Net;
+using UnityEngine.UI;
 
 public class NetworkClient : MonoBehaviour
 {
@@ -11,8 +13,20 @@ public class NetworkClient : MonoBehaviour
     NetworkPipeline reliableAndInOrderPipeline;
     NetworkPipeline nonReliableNotInOrderedPipeline;
     const ushort NetworkPort = 9001;
-    const string IPAddress = "10.0.0.242";
+    //const string IPAddress = "192.168.2.1";
+    const string IPAddress = "10.8.80.224";
 
+    [SerializeField] private Text Username;
+    [SerializeField] private Text Password;
+    [SerializeField] private Toggle NewUserCheckbox;
+
+    struct Credentials
+    {
+        public string Username;
+        public string Password;
+        public NetworkConnection Connection;
+        public bool isNewUser;
+    }
     void Start()
     {
         networkDriver = NetworkDriver.Create();
@@ -32,12 +46,6 @@ public class NetworkClient : MonoBehaviour
 
     void Update()
     {
-        #region Check Input and Send Msg
-
-        if (Input.GetKeyDown(KeyCode.A))
-            SendMessageToServer("Hello server's world, sincerely your network client");
-
-        #endregion
 
         networkDriver.ScheduleUpdate().Complete();
 
@@ -88,6 +96,23 @@ public class NetworkClient : MonoBehaviour
         #endregion
     }
 
+    public void ButtonPressed()
+    {
+        // Create a Credentials struct and fill it with username and password
+        Credentials credentials;
+        credentials.Username = Username.text;
+        credentials.Password = Password.text;
+        credentials.Connection = networkConnection;
+        credentials.isNewUser = NewUserCheckbox.isOn;
+
+        print(credentials.Connection.InternalId);
+
+        // Serialize the Credentials struct into a string
+        string serializedCredentials = JsonUtility.ToJson(credentials);
+
+        // Send the serialized credentials to the server
+        SendMessageToServer(serializedCredentials);
+    }
     private bool PopNetworkEventAndCheckForData(out NetworkEvent.Type networkEventType, out DataStreamReader streamReader, out NetworkPipeline pipelineUsedToSendEvent)
     {
         networkEventType = networkConnection.PopEvent(networkDriver, out streamReader, out pipelineUsedToSendEvent);
