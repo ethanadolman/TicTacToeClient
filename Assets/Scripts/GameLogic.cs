@@ -15,6 +15,7 @@ public class GameLogic : MonoBehaviour
 
     [SerializeField] private GameObject Lobby;
     [SerializeField] private InputField GameRoomField;
+    [SerializeField] private Text LobbyFeedback;
 
     [SerializeField] private GameObject WaitingRoom;
     [SerializeField] private Text WaitingRoomName;
@@ -54,6 +55,9 @@ public class GameLogic : MonoBehaviour
         {
             case GameState.Login:
                 LoginFeedback.text = msg;
+                break;
+            case GameState.Lobby:
+                LobbyFeedback.text = msg;
                 break;
             case GameState.WaitingRoom:
                 WaitingRoomFeedback.text = msg;
@@ -95,12 +99,14 @@ public class GameLogic : MonoBehaviour
         switch (gameState)
         {
             case GameState.Login:
+                LoginFeedback.text = "";
                 Game.SetActive(false);
                 Login.SetActive(true);
                 Lobby.SetActive(false);
                 WaitingRoom.SetActive(false);
                 break;
             case GameState.Lobby:
+                LobbyFeedback.text = "";
                 Game.SetActive(false);
                 Login.SetActive(false);
                 Lobby.SetActive(true);

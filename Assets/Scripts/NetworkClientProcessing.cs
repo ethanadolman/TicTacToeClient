@@ -41,8 +41,14 @@ static public class NetworkClientProcessing
                 gameLogic.SetState(GameLogic.GameState.WaitingRoom);
                 gameLogic.SetFeedbackText("(2/2) Waiting for Host to start Game");
                 break;
+            case ServerToClientSignifiers.GameRoomFull:
+                gameLogic.SetFeedbackText("Game room with that name is full!");
+                break;
             case ServerToClientSignifiers.ClientJoined:
                 gameLogic.SetFeedbackText("(2/2) Client has joined. Press Play to begin");
+                break;
+            case ServerToClientSignifiers.ClientLeft:
+                gameLogic.SetFeedbackText("(1/2) Client has left. Awaiting Client");
                 break;
             case ServerToClientSignifiers.GameStartSuccess:
                 gameLogic.SetState(GameLogic.GameState.InGame);
@@ -131,10 +137,11 @@ static public class ServerToClientSignifiers
     public const int ReturnToLobby = 7;
     public const int GameRoomFound = 8;
     public const int ClientJoined = 9;
-    public const int GameRoomFull = 10;
-    public const int GameStartSuccess = 11;
-    public const int GameStartFail = 12;
-    public const int GameRoomGameInProgress = 13;
+    public const int ClientLeft = 10;
+    public const int GameRoomFull = 11;
+    public const int GameStartSuccess = 12;
+    public const int GameStartFail = 13;
+    public const int GameRoomGameInProgress = 14;
 }
 
 #endregion
