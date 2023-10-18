@@ -24,6 +24,11 @@ public class GameLogic : MonoBehaviour
 
     [SerializeField] private GameObject Game;
     [SerializeField] private Text RoomName;
+    [SerializeField] private Text GameFeedback;
+    [SerializeField] private Button LeaveGameButton;
+    [SerializeField] private List<GameObject> Tiles;
+    [SerializeField] private Sprite X;
+    [SerializeField] private Sprite O;
 
     public enum GameState { Login, Lobby, WaitingRoom, InGame, Paused, GameOver }
     private GameState gameState;
@@ -43,24 +48,31 @@ public class GameLogic : MonoBehaviour
 
     public void ProcessLogin()
     {
-        var msg = NewUserCheckbox.isOn ? $"{ClientToServerSignifiers.createAccount},{UsernameField.text},{PasswordField.text}" : $"{ClientToServerSignifiers.Login},{UsernameField.text},{PasswordField.text}";
+        var msg = NewUserCheckbox.isOn ? $"{ClientToServerSignifiers.CreateAccount},{UsernameField.text},{PasswordField.text}" : $"{ClientToServerSignifiers.Login},{UsernameField.text},{PasswordField.text}";
 
         // Send the serialized credentials to the server
         NetworkClientProcessing.SendMessageToServer(msg, TransportPipeline.ReliableAndInOrder);
     }
 
-    public void SetFeedbackText(string msg)
+    public void SetFeedbackText(string msg, Color color)
     {
         switch (gameState)
         {
             case GameState.Login:
                 LoginFeedback.text = msg;
+                LoginFeedback.color = color;
                 break;
             case GameState.Lobby:
                 LobbyFeedback.text = msg;
+                LobbyFeedback.color = color;
                 break;
             case GameState.WaitingRoom:
                 WaitingRoomFeedback.text = msg;
+                WaitingRoomFeedback.color = color;
+                break;
+            case GameState.InGame:
+                GameFeedback.text = msg;
+                GameFeedback.color = color;
                 break;
             default:
                 break;
@@ -69,23 +81,54 @@ public class GameLogic : MonoBehaviour
 
     public void ProcessGameRoom()
     {
-        var msg = $"{ClientToServerSignifiers.findGame},{GameRoomField.text}";
+        var msg = $"{ClientToServerSignifiers.FindGame},{GameRoomField.text}";
 
         NetworkClientProcessing.SendMessageToServer(msg, TransportPipeline.ReliableAndInOrder);
     }
 
     public void ProcessGameStart()
     {
-        var msg = $"{ClientToServerSignifiers.gameStart},{GameRoomField.text}";
+        var msg = $"{ClientToServerSignifiers.GameStart},{GameRoomField.text}";
 
         NetworkClientProcessing.SendMessageToServer(msg, TransportPipeline.ReliableAndInOrder);
     }
 
     public void ProcessLeaveWaitingRoom()
     {
-        var msg = $"{ClientToServerSignifiers.leaveWaitingRoom},{GameRoomField.text}";
+        var msg = $"{ClientToServerSignifiers.LeaveWaitingRoom},{GameRoomField.text}";
 
         NetworkClientProcessing.SendMessageToServer(msg, TransportPipeline.ReliableAndInOrder);
+    }
+
+    public void ProcessGameMove(int tile)
+    {
+        var msg = $"{ClientToServerSignifiers.GameMove},{GameRoomField.text},{tile}";
+
+        NetworkClientProcessing.SendMessageToServer(msg, TransportPipeline.ReliableAndInOrder);
+    }
+
+    public void ProcessLeaveGame()
+    {
+        var msg = $"{ClientToServerSignifiers.LeaveGame},{GameRoomField.text}";
+        NetworkClientProcessing.SendMessageToServer(msg, TransportPipeline.ReliableAndInOrder);
+    }
+
+    public void ForceReturnToLobby()
+    {
+        StartCoroutine(ReturnToLobbyCoroutine());
+    }
+    public IEnumerator ReturnToLobbyCoroutine()
+    {
+        LeaveGameButton.interactable = false;
+        SetFeedbackText("Opponent left the match. You Win! Returning to lobby in 3", Color.green);
+        yield return new WaitForSeconds(1);
+        SetFeedbackText("Opponent left the match. You Win! Returning to lobby in 2", Color.green);
+        yield return new WaitForSeconds(1);
+        SetFeedbackText("Opponent left the match. You Win! Returning to lobby in 1", Color.green);
+        yield return new WaitForSeconds(1);
+        SetFeedbackText("Opponent left the match. You Win! Returning to lobby in 0", Color.green);
+        SetState(GameState.Lobby);
+        
     }
 
     public void SetState(GameState state)
@@ -111,6 +154,7 @@ public class GameLogic : MonoBehaviour
                 Login.SetActive(false);
                 Lobby.SetActive(true);
                 WaitingRoom.SetActive(false);
+                ResetTiles();
                 break;
             case GameState.WaitingRoom:
                 StartGameButton.interactable = isHost;
@@ -121,7 +165,9 @@ public class GameLogic : MonoBehaviour
                 Lobby.SetActive(false);
                 break;
             case GameState.InGame:
+                LeaveGameButton.interactable = true;
                 RoomName.text = WaitingRoomName.text;
+                GameFeedback.text = "";
                 Game.SetActive(true);
                 Login.SetActive(false);
                 Lobby.SetActive(false);
@@ -134,6 +180,19 @@ public class GameLogic : MonoBehaviour
 
         }
     }
+
+   public void SetTile(int tile, bool isX)
+   {
+       Tiles[tile].GetComponent<Image>().sprite = isX ? X : O;
+   }
+
+   public void ResetTiles()
+   {
+       foreach (var tile in Tiles)
+       {
+           tile.GetComponent<Image>().sprite = null;
+       }
+   }
 }
 
 

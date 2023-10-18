@@ -25,7 +25,9 @@ static public class NetworkClientProcessing
             case ServerToClientSignifiers.LoginFail:
             case ServerToClientSignifiers.UserNotExist:
             case ServerToClientSignifiers.UsernameInUse:
-                gameLogic.SetFeedbackText(csv[1]);
+            case ServerToClientSignifiers.InvalidMove:
+            case ServerToClientSignifiers.NotYourTurn:
+                gameLogic.SetFeedbackText(csv[1], Color.red);
                 break;
             case ServerToClientSignifiers.LoginSuccess:
             case ServerToClientSignifiers.ReturnToLobby:
@@ -34,27 +36,45 @@ static public class NetworkClientProcessing
             case ServerToClientSignifiers.NewGameRoom:
                 gameLogic.isHost = true;
                 gameLogic.SetState(GameLogic.GameState.WaitingRoom);
-                gameLogic.SetFeedbackText("(1/2) Awaiting Client");
+                gameLogic.SetFeedbackText("(1/2) Awaiting Client", Color.black);
                 break;
             case ServerToClientSignifiers.GameRoomFound:
                 gameLogic.isHost = false;
                 gameLogic.SetState(GameLogic.GameState.WaitingRoom);
-                gameLogic.SetFeedbackText("(2/2) Waiting for Host to start Game");
+                gameLogic.SetFeedbackText("(2/2) Waiting for Host to start Game", Color.black);
                 break;
             case ServerToClientSignifiers.GameRoomFull:
-                gameLogic.SetFeedbackText("Game room with that name is full!");
+                gameLogic.SetFeedbackText("Game room with that name is full!", Color.red);
                 break;
             case ServerToClientSignifiers.ClientJoined:
-                gameLogic.SetFeedbackText("(2/2) Client has joined. Press Play to begin");
+                gameLogic.SetFeedbackText("(2/2) Client has joined. Press Play to begin", Color.green);
                 break;
             case ServerToClientSignifiers.ClientLeft:
-                gameLogic.SetFeedbackText("(1/2) Client has left. Awaiting Client");
+                gameLogic.SetFeedbackText("(1/2) Client has left. Awaiting Client", Color.black);
                 break;
             case ServerToClientSignifiers.GameStartSuccess:
                 gameLogic.SetState(GameLogic.GameState.InGame);
                 break;
             case ServerToClientSignifiers.GameStartFail:
-                gameLogic.SetFeedbackText("(1/2) Game Cannot start without another user");
+                gameLogic.SetFeedbackText("(1/2) Game Cannot start without another user", Color.red);
+                break;
+            case ServerToClientSignifiers.SuccessfulMove:
+                gameLogic.SetTile(int.Parse(csv[1]), gameLogic.isHost);
+                gameLogic.SetFeedbackText("Awaiting opponent", Color.black);
+                break;
+            case ServerToClientSignifiers.SuccessfulOpponentMove:
+                gameLogic.SetTile(int.Parse(csv[1]), !gameLogic.isHost);
+                gameLogic.SetFeedbackText("It's your turn", Color.black);
+                break;
+            case ServerToClientSignifiers.GameWin:
+                gameLogic.SetFeedbackText("You Win!", Color.green);
+                break;
+            case ServerToClientSignifiers.GameLose:
+                gameLogic.SetFeedbackText("You Lose!", Color.red);
+                break;
+            case ServerToClientSignifiers.OpponentDisconnected:
+                gameLogic.ForceReturnToLobby();
+
                 break;
             default:
                 break;
@@ -118,11 +138,12 @@ static public class NetworkClientProcessing
 static public class ClientToServerSignifiers
 {
     public const int Login = 1;
-    public const int createAccount = 2;
-    public const int findGame = 3;
-    public const int gameStart = 4;
-    public const int leaveWaitingRoom = 5;
-    public const int leaveGame = 6;
+    public const int CreateAccount = 2;
+    public const int FindGame = 3;
+    public const int GameStart = 4;
+    public const int LeaveWaitingRoom = 5;
+    public const int LeaveGame = 6;
+    public const int GameMove = 7;
 }
 
 static public class ServerToClientSignifiers
@@ -142,6 +163,13 @@ static public class ServerToClientSignifiers
     public const int GameStartSuccess = 12;
     public const int GameStartFail = 13;
     public const int GameRoomGameInProgress = 14;
+    public const int InvalidMove = 15;
+    public const int SuccessfulMove = 16;
+    public const int SuccessfulOpponentMove = 17;
+    public const int NotYourTurn = 18;
+    public const int GameWin = 19;
+    public const int GameLose = 20;
+    public const int OpponentDisconnected = 21;
 }
 
 #endregion
