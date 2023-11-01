@@ -35,22 +35,36 @@ static public class NetworkClientProcessing
                 break;
             case ServerToClientSignifiers.NewGameRoom:
                 gameLogic.isHost = true;
+                gameLogic.isObserver = false;
                 gameLogic.SetState(GameLogic.GameState.WaitingRoom);
                 gameLogic.SetFeedbackText("(1/2) Awaiting Client", Color.black);
                 break;
             case ServerToClientSignifiers.GameRoomFound:
                 gameLogic.isHost = false;
+                gameLogic.isObserver = false;
                 gameLogic.SetState(GameLogic.GameState.WaitingRoom);
                 gameLogic.SetFeedbackText("(2/2) Waiting for Host to start Game", Color.black);
                 break;
-            case ServerToClientSignifiers.GameRoomFull:
-                gameLogic.SetFeedbackText("Game room with that name is full!", Color.red);
+            case ServerToClientSignifiers.FullGameRoomFound:
+                gameLogic.isHost = false;
+                gameLogic.isObserver = true;
+                gameLogic.SetState(GameLogic.GameState.WaitingRoom);
+                gameLogic.SetFeedbackText("You are an observer.", Color.black);
+                break;
+            case ServerToClientSignifiers.FullGameRoomFoundInProgress:
+                gameLogic.isHost = false;
+                gameLogic.isObserver = true;
+                gameLogic.SetState(GameLogic.GameState.InGame);
+                for (int i = 1; i < 10; i++)
+                {
+                    int j = int.Parse(csv[i]);
+                    if(j != 0) gameLogic.SetTile(i-1, j == 1);
+                    
+                }
+                gameLogic.SetFeedbackText("You are an observer.", Color.black);
                 break;
             case ServerToClientSignifiers.ClientJoined:
                 gameLogic.SetFeedbackText("(2/2) Client has joined. Press Play to begin", Color.green);
-                break;
-            case ServerToClientSignifiers.ClientLeft:
-                gameLogic.SetFeedbackText("(1/2) Client has left. Awaiting Client", Color.black);
                 break;
             case ServerToClientSignifiers.GameStartSuccess:
                 gameLogic.SetState(GameLogic.GameState.InGame);
@@ -158,11 +172,11 @@ static public class ServerToClientSignifiers
     public const int ReturnToLobby = 7;
     public const int GameRoomFound = 8;
     public const int ClientJoined = 9;
-    public const int ClientLeft = 10;
-    public const int GameRoomFull = 11;
+    public const int ClientLeft = 10; //no need to use anymore
+    public const int FullGameRoomFound = 11;
     public const int GameStartSuccess = 12;
     public const int GameStartFail = 13;
-    public const int GameRoomGameInProgress = 14;
+    public const int FullGameRoomFoundInProgress = 14;
     public const int InvalidMove = 15;
     public const int SuccessfulMove = 16;
     public const int SuccessfulOpponentMove = 17;

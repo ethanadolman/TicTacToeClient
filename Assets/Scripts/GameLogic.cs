@@ -34,6 +34,7 @@ public class GameLogic : MonoBehaviour
     private GameState gameState;
 
     public bool isHost;
+    public bool isObserver;
     void Start()
     {
         NetworkClientProcessing.SetGameLogic(this);
@@ -120,13 +121,13 @@ public class GameLogic : MonoBehaviour
     public IEnumerator ReturnToLobbyCoroutine()
     {
         LeaveGameButton.interactable = false;
-        SetFeedbackText("Opponent left the match. You Win! Returning to lobby in 3", Color.green);
+        SetFeedbackText("Opponent left the match. Returning to lobby in 3", Color.black);
         yield return new WaitForSeconds(1);
-        SetFeedbackText("Opponent left the match. You Win! Returning to lobby in 2", Color.green);
+        SetFeedbackText("Opponent left the match. Returning to lobby in 2", Color.black);
         yield return new WaitForSeconds(1);
-        SetFeedbackText("Opponent left the match. You Win! Returning to lobby in 1", Color.green);
+        SetFeedbackText("Opponent left the match. Returning to lobby in 1", Color.black);
         yield return new WaitForSeconds(1);
-        SetFeedbackText("Opponent left the match. You Win! Returning to lobby in 0", Color.green);
+        SetFeedbackText("Opponent left the match.  Returning to lobby in 0", Color.black);
         SetState(GameState.Lobby);
         
     }
