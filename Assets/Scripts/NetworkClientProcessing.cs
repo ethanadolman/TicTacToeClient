@@ -31,6 +31,9 @@ static public class NetworkClientProcessing
                 break;
             case ServerToClientSignifiers.LoginSuccess:
             case ServerToClientSignifiers.ReturnToLobby:
+                gameLogic.SetPlayerNameTexts();
+                gameLogic.SetPlayerMessageText("", false);
+                gameLogic.SetPlayerMessageText("", true);
                 gameLogic.SetState(GameLogic.GameState.Lobby);
                 break;
             case ServerToClientSignifiers.NewGameRoom:
@@ -38,47 +41,55 @@ static public class NetworkClientProcessing
                 gameLogic.isObserver = false;
                 gameLogic.SetState(GameLogic.GameState.WaitingRoom);
                 gameLogic.SetFeedbackText("(1/2) Awaiting Client", Color.black);
+                gameLogic.SetPlayerNameTexts(csv[1]);
                 break;
             case ServerToClientSignifiers.GameRoomFound:
                 gameLogic.isHost = false;
                 gameLogic.isObserver = false;
                 gameLogic.SetState(GameLogic.GameState.WaitingRoom);
                 gameLogic.SetFeedbackText("(2/2) Waiting for Host to start Game", Color.black);
+                gameLogic.SetPlayerNameTexts(csv[1], csv[2]);
                 break;
             case ServerToClientSignifiers.FullGameRoomFound:
                 gameLogic.isHost = false;
                 gameLogic.isObserver = true;
                 gameLogic.SetState(GameLogic.GameState.WaitingRoom);
                 gameLogic.SetFeedbackText("You are an observer.", Color.black);
+                gameLogic.SetPlayerNameTexts(csv[1], csv[2]);
                 break;
             case ServerToClientSignifiers.FullGameRoomFoundInProgress:
                 gameLogic.isHost = false;
                 gameLogic.isObserver = true;
                 gameLogic.SetState(GameLogic.GameState.InGame);
-                for (int i = 1; i < 10; i++)
+                for (int i = 3; i < 12; i++)
                 {
                     int j = int.Parse(csv[i]);
-                    if(j != 0) gameLogic.SetTile(i-1, j == 1);
+                    if(j != 0) gameLogic.SetTile(i-3, j == 1);
                     
                 }
                 gameLogic.SetFeedbackText("You are an observer.", Color.black);
+                gameLogic.SetPlayerNameTexts(csv[1], csv[2]);
                 break;
             case ServerToClientSignifiers.ClientJoined:
                 gameLogic.SetFeedbackText("(2/2) Client has joined. Press Play to begin", Color.green);
+                gameLogic.SetPlayerNameTexts(csv[1], csv[2]);
                 break;
             case ServerToClientSignifiers.GameStartSuccess:
+                gameLogic.SetPlayerMessageText("", false);
+                gameLogic.SetPlayerMessageText("", true);
                 gameLogic.SetState(GameLogic.GameState.InGame);
+                gameLogic.SetPlayerNameTexts(csv[1], csv[2]);
                 break;
             case ServerToClientSignifiers.GameStartFail:
                 gameLogic.SetFeedbackText("(1/2) Game Cannot start without another user", Color.red);
                 break;
             case ServerToClientSignifiers.SuccessfulMove:
-                gameLogic.SetTile(int.Parse(csv[1]), gameLogic.isHost);
-                gameLogic.SetFeedbackText("Awaiting opponent", Color.black);
+                gameLogic.SetTile(int.Parse(csv[2]), gameLogic.isHost);
+                gameLogic.SetFeedbackText($"{csv[1]}'s Turn", Color.black);
                 break;
             case ServerToClientSignifiers.SuccessfulOpponentMove:
-                gameLogic.SetTile(int.Parse(csv[1]), !gameLogic.isHost);
-                gameLogic.SetFeedbackText("It's your turn", Color.black);
+                gameLogic.SetTile(int.Parse(csv[2]), !gameLogic.isHost);
+                gameLogic.SetFeedbackText($"{csv[1]}'s Turn", Color.black);
                 break;
             case ServerToClientSignifiers.GameWin:
                 gameLogic.SetFeedbackText("You Win!", Color.green);
@@ -88,7 +99,12 @@ static public class NetworkClientProcessing
                 break;
             case ServerToClientSignifiers.OpponentDisconnected:
                 gameLogic.ForceReturnToLobby();
-
+                break;
+            case ServerToClientSignifiers.DisplayHostMessage:
+                gameLogic.SetPlayerMessageText(csv[1], true);
+                break;
+            case ServerToClientSignifiers.DisplayClientMessage:
+                gameLogic.SetPlayerMessageText(csv[1], false);
                 break;
             default:
                 break;
@@ -158,6 +174,7 @@ static public class ClientToServerSignifiers
     public const int LeaveWaitingRoom = 5;
     public const int LeaveGame = 6;
     public const int GameMove = 7;
+    public const int PlayerMessage = 8;
 }
 
 static public class ServerToClientSignifiers
@@ -184,6 +201,8 @@ static public class ServerToClientSignifiers
     public const int GameWin = 19;
     public const int GameLose = 20;
     public const int OpponentDisconnected = 21;
+    public const int DisplayHostMessage = 22;
+    public const int DisplayClientMessage = 23;
 }
 
 #endregion
